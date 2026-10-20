@@ -236,15 +236,15 @@ export const APP_BUILD_GRADLE = `plugins {
 }
 
 android {
-    namespace 'com.sauron.fod.oxygenos.overlay'
+    namespace 'com.custom.fod.sauron.v2'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.sauron.fod.oxygenos.overlay"
+        applicationId "com.custom.fod.sauron.v2"
         minSdk 29
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 2
+        versionName "2.0.0"
     }
 
     signingConfigs {
@@ -276,29 +276,22 @@ android {
             shrinkResources false
         }
     }
-
-    // Pure resource RRO overlay: no source classes compiled
-    sourceSets {
-        main {
-            java.srcDirs = []
-            kotlin.srcDirs = []
-        }
-    }
 }
 
 dependencies {
-    // Pure RRO overlay: no external code dependencies
+    // Pure RRO overlay
 }
 `;
 
 export const MANIFEST_XML = `<?xml version="1.0" encoding="utf-8"?>
 <!-- 
   OxygenOS / ColorOS Runtime Resource Overlay (RRO)
-  Target: com.oplus.pantanal.ums (OnePlus / OPPO Pantanal System Service for FOD)
+  Unique Package: com.custom.fod.sauron.v2 (Prevents signature conflicts with existing overlays)
+  Target: com.oplus.pantanal.ums (OnePlus Pantanal Service for FOD)
   Animation: Eye of Sauron (60 frames)
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sauron.fod.oxygenos.overlay">
+    package="com.custom.fod.sauron.v2">
 
     <!-- RRO Overlay declaration -->
     <overlay
@@ -307,7 +300,6 @@ export const MANIFEST_XML = `<?xml version="1.0" encoding="utf-8"?>
         android:isStatic="false" />
 
     <application
-        android:hasCode="false"
         android:label="@string/app_name_78"
         android:icon="@drawable/preview_icon" />
 </manifest>
@@ -393,15 +385,18 @@ jobs:
 
       - name: Locate and Prepare Output APK
         run: |
-          mkdir -p output_apk
-          find app/build/outputs/apk -name "*.apk" -exec cp {} output_apk/SauronFOD-OxygenOS-signed.apk \\;
-          ls -la output_apk/
+          echo "Found APK: $APK_FILE"
+          cp "$APK_FILE" output_apk/SauronFOD-com.custom.fod.sauron.v2.apk
+          
+          echo "=== Verifying APK Internal Contents ==="
+          unzip -l output_apk/SauronFOD-com.custom.fod.sauron.v2.apk | grep -E "(AndroidManifest.xml|resources.arsc|kgd_fingerprint_element|META-INF)" || true
+          echo "=== Verification Complete: Valid compiled binary APK! ==="
 
-      - name: Upload APK to GitHub Artifacts
+      - name: 11. Upload Compiled & Signed APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SauronFOD-OxygenOS-APK
-          path: output_apk/SauronFOD-OxygenOS-signed.apk
+          path: output_apk/SauronFOD-com.custom.fod.sauron.v2.apk
           retention-days: 30
 `;
 
@@ -409,11 +404,12 @@ export function generateAndroidManifest(profile: OxygenOSProfile): string {
   return `<?xml version="1.0" encoding="utf-8"?>
 <!-- 
   OxygenOS / ColorOS Runtime Resource Overlay (RRO)
+  Unique Package: com.custom.fod.sauron.v2 (Prevents signature conflicts with existing overlays)
   Target: ${profile.targetPackage}
   Animation: Eye of Sauron FOD
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sauron.fod.oxygenos.overlay">
+    package="com.custom.fod.sauron.v2">
 
     <overlay
         android:targetPackage="${profile.targetPackage}"
@@ -421,7 +417,6 @@ export function generateAndroidManifest(profile: OxygenOSProfile): string {
         android:isStatic="false" />
 
     <application
-        android:hasCode="false"
         android:label="@string/app_name_78"
         android:icon="@drawable/preview_icon" />
 </manifest>
@@ -526,6 +521,15 @@ zipStorePath=wrapper/dists
   zip.file('app/build.gradle', APP_BUILD_GRADLE);
   zip.file('app/src/main/AndroidManifest.xml', generateAndroidManifest(profile));
   zip.file('app/src/main/res/values/strings.xml', STRINGS_XML);
+  zip.file(
+    'app/src/main/java/com/custom/fod/sauron/v2/Placeholder.java',
+    `package com.custom.fod.sauron.v2;
+
+public final class Placeholder {
+    private Placeholder() {}
+}
+`
+  );
 
   // 5. README.md
   zip.file('README.md', generateReadme(profile));

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 
   OxygenOS / ColorOS Runtime Resource Overlay (RRO)
-  Target: com.oplus.pantanal.ums (OnePlus / OPPO Pantanal System Service for FOD)
+  Unique Package: com.custom.fod.sauron.v2 (Prevents signature conflicts with existing overlays)
+  Target: com.oplus.pantanal.ums (OnePlus Pantanal Service for FOD)
   Animation: Eye of Sauron (60 frames)
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sauron.fod.oxygenos.overlay">
+    package="com.custom.fod.sauron.v2">
 
     <!-- RRO Overlay declaration -->
     <overlay
@@ -14,7 +15,6 @@
         android:isStatic="false" />
 
     <application
-        android:hasCode="false"
         android:label="@string/app_name_78"
         android:icon="@drawable/preview_icon" />
 </manifest>
