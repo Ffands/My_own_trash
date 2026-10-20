@@ -1,0 +1,6 @@
+{
+  "name": "OxygenOS Sauron FOD Animator & APK Builder",
+  "description": "Studio for creating custom Eye of Sauron fingerprint animations (FOD) for OnePlus OxygenOS / ColorOS, complete with APK inspector, frame generator, and automated GitHub Actions builder.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
