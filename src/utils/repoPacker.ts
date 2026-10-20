@@ -358,8 +358,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # Note: Android SDK is already pre-installed on GitHub Ubuntu runners at /usr/local/lib/android/sdk
+      # We just accept licenses without running the broken third-party setup-android action.
+      - name: Accept Android SDK Licenses
+        run: |
+          mkdir -p "$ANDROID_HOME/licenses" || true
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> "$ANDROID_HOME/licenses/android-sdk-license"
+          echo "84831b9409646a918e30573bab4c9c91346d8abd" >> "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
 
       - name: Generate Debug Keystore for Signing
         run: |
@@ -504,6 +510,17 @@ export async function buildCompleteProjectZip(
   zip.file('build.gradle', BUILD_GRADLE_ROOT);
   zip.file('gradle.properties', GRADLE_PROPERTIES);
   zip.file('.gitignore', GITIGNORE);
+  zip.file(
+    'gradle/wrapper/gradle-wrapper.properties',
+    `distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\\://services.gradle.org/distributions/gradle-8.7-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+`
+  );
 
   // 4. App module files
   zip.file('app/build.gradle', APP_BUILD_GRADLE);
